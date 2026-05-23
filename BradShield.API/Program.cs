@@ -3,17 +3,22 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<BradShieldContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-// Add services to the container.
-
+//  Permite que a API reconheça seus arquivos Controllers
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+
+// Criação da regra do CORS 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("PermitirTudo",
+        policy => policy
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader());
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// requisição HTTP
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -22,6 +27,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+// inica o Cors
+app.UseCors("PermitirTudo");
 
 app.MapControllers();
 

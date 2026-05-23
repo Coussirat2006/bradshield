@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BradShield.API")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3dce65809bd1f1b8e81918ad19cbac065e583ea6")]
 [assembly: System.Reflection.AssemblyProductAttribute("BradShield.API")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BradShield.API")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\lukas\\OneDrive\\Desktop\\BradShield.API\\BradShield.API\\BradShield.API.csproj": {}
+    "C:\\Users\\lukas\\OneDrive\\Desktop\\bradshield\\BradShield.API\\BradShield.API.csproj": {}
   },
   "projects": {
-    "C:\\Users\\lukas\\OneDrive\\Desktop\\BradShield.API\\BradShield.API\\BradShield.API.csproj": {
+    "C:\\Users\\lukas\\OneDrive\\Desktop\\bradshield\\BradShield.API\\BradShield.API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\lukas\\OneDrive\\Desktop\\BradShield.API\\BradShield.API\\BradShield.API.csproj",
+        "projectUniqueName": "C:\\Users\\lukas\\OneDrive\\Desktop\\bradshield\\BradShield.API\\BradShield.API.csproj",
         "projectName": "BradShield.API",
-        "projectPath": "C:\\Users\\lukas\\OneDrive\\Desktop\\BradShield.API\\BradShield.API\\BradShield.API.csproj",
+        "projectPath": "C:\\Users\\lukas\\OneDrive\\Desktop\\bradshield\\BradShield.API\\BradShield.API.csproj",
         "packagesPath": "C:\\Users\\lukas\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\lukas\\OneDrive\\Desktop\\BradShield.API\\BradShield.API\\obj\\",
+        "outputPath": "C:\\Users\\lukas\\OneDrive\\Desktop\\bradshield\\BradShield.API\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
