@@ -3,12 +3,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BradShield.API
 {
-    [Table("NumerosSeguros")]
     public class NumeroSeguro
     {
-        [Key]
         public int ID { get; set; }
-        public string NumeroTelefone { get; set; }
+        
+        // O "required" garante que o número nunca seja nulo ao criar o objeto
+        public required string NumeroTelefone { get; set; }
+        
         public int InstituicaoID { get; set; }
     }
-}       
+}  
