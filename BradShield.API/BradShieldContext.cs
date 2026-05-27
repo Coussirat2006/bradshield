@@ -7,5 +7,8 @@ namespace BradShield.API
         public BradShieldContext(DbContextOptions<BradShieldContext> options) : base(options) { }
 
         public DbSet<NumeroSeguro> NumerosSeguros { get; set; }
+        
+        // Nova tabela de auditoria conectada ao Azure
+        public DbSet<HistoricoVerificacao> HistoricoVerificacoes { get; set; }
     }
 }

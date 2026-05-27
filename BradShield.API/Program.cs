@@ -6,6 +6,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Permite que a API reconheça seus arquivos Controllers
 builder.Services.AddControllers();
 
+// Conectando a API ao Banco de Dados SQL do Azure usando a configuração já existente
+builder.Services.AddDbContext<BradShieldContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    
 // Adiciona os serviços necessários para o Swagger funcionar
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
