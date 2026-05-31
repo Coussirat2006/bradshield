@@ -1,22 +1,36 @@
-using BradShield.API;
+using BradShield.API.Data;
+using BradShield.API.Repositories;
+using BradShield.API.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Permite que a API reconheça seus arquivos Controllers
 builder.Services.AddControllers();
 
-// Conectando a API ao Banco de Dados SQL do Azure usando a configuração já existente
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException(
+        "Configure a connection string named 'DefaultConnection' using user secrets, environment variables, Azure App Service connection strings, or Azure Key Vault.");
+}
+
 builder.Services.AddDbContext<BradShieldContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-    
-// Adiciona os serviços necessários para o Swagger funcionar
+    options.UseSqlServer(
+        connectionString,
+        sqlOptions => sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null)));
+
+builder.Services.AddScoped<INumeroSeguroRepository, NumeroSeguroRepository>();
+builder.Services.AddScoped<IHistoricoVerificacaoRepository, HistoricoVerificacaoRepository>();
+builder.Services.AddScoped<ICanalService, CanalService>();
+builder.Services.AddScoped<IVerificacaoService, VerificacaoService>();
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<BradShieldContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Criação da regra do CORS 
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("PermitirTudo",
@@ -28,39 +42,30 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// requisição HTTP e Ativação da tela do Swagger
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();   // Gera o mapeamento
-    app.UseSwaggerUI(); // Cria a tela visual no navegador
+    app.UseSwagger();
+    app.UseSwaggerUI();
+
+    app.MapGet("/teste-banco", async (BradShieldContext db, CancellationToken cancellationToken) =>
+    {
+        try
+        {
+            return await db.Database.CanConnectAsync(cancellationToken)
+                ? Results.Ok("Conexao com o banco de dados realizada com sucesso.")
+                : Results.Problem("Nao foi possivel conectar ao banco de dados.");
+        }
+        catch (Exception ex)
+        {
+            return Results.Problem($"Erro ao conectar no banco: {ex.Message}");
+        }
+    });
 }
 
 app.UseHttpsRedirection();
+app.UseCors("PermitirTudo");
 app.UseAuthorization();
 
-// inicia o Cors
-app.UseCors("PermitirTudo");
-
 app.MapControllers();
-
-// Rota temporária para testar a conexão com o banco de dados
-app.MapGet("/teste-banco", async (BradShieldContext db) =>
-{
-    try
-    {
-        // Tenta abrir a conexão com o banco
-        bool conectou = await db.Database.CanConnectAsync();
-
-        if (conectou)
-            return Results.Ok("Conexão com o banco de dados funcionou perfeitamente! 🚀");
-        else
-            return Results.StatusCode(500);
-    }
-    catch (Exception ex)
-    {
-        // Se der erro (senha errada, firewall bloqueando, etc), ele mostra o motivo
-        return Results.Problem($"Erro ao conectar no banco: {ex.Message}");
-    }
-});
 
 app.Run();

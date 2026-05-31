@@ -1,49 +1,35 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Threading.Tasks;
+using BradShield.API.Response;
+using BradShield.API.Services;
+using Microsoft.AspNetCore.Mvc;
 
-namespace BradShield.API.Controllers
+namespace BradShield.API.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class VerificacaoController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class VerificacaoController : ControllerBase
+    private readonly IVerificacaoService _verificacaoService;
+
+    public VerificacaoController(IVerificacaoService verificacaoService)
     {
-        private readonly BradShieldContext _context;
+        _verificacaoService = verificacaoService;
+    }
 
-        public VerificacaoController(BradShieldContext context)
+    [HttpGet("checar/{numero}")]
+    public async Task<IActionResult> ChecarNumero(string numero, CancellationToken cancellationToken)
+    {
+        var ipRequisicao = HttpContext.Connection.RemoteIpAddress?.ToString();
+        var resultado = await _verificacaoService.ChecarNumeroAsync(numero, ipRequisicao, cancellationToken);
+
+        if (resultado.Seguro)
         {
-            _context = context;
+            return Ok(new VerificacaoResponse(
+                resultado.Status,
+                "Este n\u00FAmero \u00E9 de um banco oficial. Pode atender!"));
         }
 
-        [HttpGet("checar/{numero}")]
-        public async Task<IActionResult> ChecarNumero(string numero)
-        {
-            // Consulta no banco do Azure se o número pertence à base oficial
-            var seguro = await _context.NumerosSeguros.FirstOrDefaultAsync(n => n.NumeroTelefone == numero);
-
-            string statusResultado = (seguro != null) ? "Seguro" : "Alerta";
-            string? ipRequisicao = HttpContext.Connection.RemoteIpAddress?.ToString();
-
-            // Grava a trilha de auditoria de segurança
-            var logAuditoria = new HistoricoVerificacao
-            {
-                NumeroConsultado = numero,
-                StatusRetornado = statusResultado,
-                IPOrigem = ipRequisicao,
-                DataConsulta = DateTime.Now
-            };
-
-            _context.HistoricoVerificacoes.Add(logAuditoria);
-            await _context.SaveChangesAsync();
-
-            // Respostas tratadas para o Front-end consumir dinamicamente
-            if (seguro != null)
-            {
-                return Ok(new { status = "Seguro", mensagem = "Este número é de um banco oficial. Pode atender!" });
-            }
-
-            return BadRequest(new { status = "Alerta", mensagem = "⚠️ ALERTA: Número não encontrado na base oficial. Possível golpe!" });
-        }
+        return BadRequest(new VerificacaoResponse(
+            resultado.Status,
+            "\u26A0\uFE0F ALERTA: N\u00FAmero n\u00E3o encontrado na base oficial. Poss\u00EDvel golpe!"));
     }
 }

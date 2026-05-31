@@ -1,27 +1,30 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using BradShield.API.Response;
+using BradShield.API.Services;
+using Microsoft.AspNetCore.Mvc;
 
-namespace BradShield.API.Controllers
+namespace BradShield.API.Controllers;
+
+[ApiController]
+[Route("api/[controller]")]
+public class CanaisController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")] // Isso faz a rota virar /api/canais
-    public class CanaisController : ControllerBase
-    {
-        [HttpGet("{numero}")]
-        public IActionResult VerificarCanal(string numero)
-        {
-            // Simulando a ida ao banco de dados rápido
-            if (numero == "0800-591-2117")
-            {
-                // Se o número for esse, devolve OK (Status 200) e os dados do banco
-                return Ok(new
-                {
-                    instituicao = "Banco Bradesco Oficial",
-                    seguro = true
-                });
-            }
+    private readonly ICanalService _canalService;
 
-            // Se for qualquer outro número, devolve Não Encontrado (Status 404 - Perigo!)
-            return NotFound(new { mensagem = "Número não encontrado na base de dados." });
+    public CanaisController(ICanalService canalService)
+    {
+        _canalService = canalService;
+    }
+
+    [HttpGet("{numero}")]
+    public async Task<IActionResult> VerificarCanal(string numero, CancellationToken cancellationToken)
+    {
+        var canal = await _canalService.VerificarCanalAsync(numero, cancellationToken);
+
+        if (canal is null)
+        {
+            return NotFound(new MensagemResponse("Numero nao encontrado na base de dados."));
         }
+
+        return Ok(canal);
     }
 }

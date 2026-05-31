@@ -1,6 +1,26 @@
 @BradShield.API_HostAddress = http://localhost:5189
 
-GET {{BradShield.API_HostAddress}}/weatherforecast/
+GET {{BradShield.API_HostAddress}}/api/canais/0800-591-2117
 Accept: application/json
+
+###
+
+GET {{BradShield.API_HostAddress}}/api/verificacao/checar/0800-591-2117
+Accept: application/json
+
+###
+
+GET {{BradShield.API_HostAddress}}/api/numeros-seguros
+Accept: application/json
+
+###
+
+POST {{BradShield.API_HostAddress}}/api/numeros-seguros
+Content-Type: application/json
+
+{
+  "numeroTelefone": "0800-000-0000",
+  "instituicao": "Banco Bradesco Oficial"
+}
 
 ###
