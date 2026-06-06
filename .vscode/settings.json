@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/86429f8f-f0bd-4f0b-9275-684728875998/resourceGroups/rg-bradshield/providers/Microsoft.Web/sites/bradshield-api-sj",
+    "appService.deploySubpath": "BradShield.API\\publish"
+}

@@ -5,3 +5,7 @@
 # Build results
 [Bb]in/
 [Oo]bj/
+
+# Ignorar pastas de publicacao geradas para o Azure
+publish/
+BradShield.API/publish/

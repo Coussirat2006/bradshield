@@ -42,25 +42,31 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
+// Código modificado: removido o IF para funcionar no Azure
+app.UseSwagger();
+app.UseSwaggerUI();
 
-    app.MapGet("/teste-banco", async (BradShieldContext db, CancellationToken cancellationToken) =>
+app.MapGet("/teste-banco", async (BradShieldContext db, CancellationToken cancellationToken) =>
+{
+    try
     {
-        try
-        {
-            return await db.Database.CanConnectAsync(cancellationToken)
-                ? Results.Ok("Conexao com o banco de dados realizada com sucesso.")
-                : Results.Problem("Nao foi possivel conectar ao banco de dados.");
-        }
-        catch (Exception ex)
-        {
-            return Results.Problem($"Erro ao conectar no banco: {ex.Message}");
-        }
-    });
-}
+        return await db.Database.CanConnectAsync(cancellationToken)
+            ? Results.Ok("Conexao com o banco de dados realizada com sucesso.")
+            : Results.Problem("Nao foi possivel conectar ao banco de dados.");
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem($"Erro ao conectar no banco: {ex.Message}");
+    }
+});
+
+app.UseHttpsRedirection();
+app.UseCors("PermitirTudo");
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();
 
 app.UseHttpsRedirection();
 app.UseCors("PermitirTudo");
