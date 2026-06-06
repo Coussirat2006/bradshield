@@ -13,9 +13,18 @@
       "bundleIdentifier": "com.bradshield.mobile"
     },
     "android": {
-      "package": "com.bradshield.mobile",
-      "edgeToEdgeEnabled": true
+      "package": "com.lukas.bradshield"
     },
+    "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          }
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "ef6ab476-1f96-4676-a010-8fb061e0e48a"
