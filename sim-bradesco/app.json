@@ -15,6 +15,11 @@
     "android": {
       "package": "com.bradshield.mobile",
       "edgeToEdgeEnabled": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ef6ab476-1f96-4676-a010-8fb061e0e48a"
+      }
     }
   }
 }

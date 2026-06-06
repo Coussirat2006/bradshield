@@ -26,3 +26,9 @@ Para dispositivo físico, use a aba `Conexão` no app ou inicie com:
 $env:EXPO_PUBLIC_BRADSHIELD_API_URL="http://SEU-IP-LOCAL:5189"
 npm.cmd run start
 ```
+
+## Tela Saiba Mais
+
+Quando a verificacao retornar `suspeito` ou `fraudulento`, o app mostra o botao **Saiba mais** e abre a tela de suspeita dentro do proprio aplicativo.
+
+A tela interna tambem possui a opcao **Ver dicas**, com orientacoes de seguranca adaptadas do projeto `saiba-mais-bra`.

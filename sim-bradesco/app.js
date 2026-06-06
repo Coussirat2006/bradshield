@@ -87,6 +87,22 @@ function normalizeSafeNumber(item) {
   };
 }
 
+function isSuspiciousStatus(status) {
+  return status === "suspeito" || status === "fraudulento";
+}
+
+function getRiskAlertLabel(status) {
+  return status === "fraudulento" ? "FRAUDE" : "GOLPE";
+}
+
+function getRiskClassificationLabel(status) {
+  return status === "fraudulento" ? "fraudulento" : "suspeito";
+}
+
+function getRiskTitle(status) {
+  return status === "fraudulento" ? "Alerta de fraude" : "Alerta de golpe";
+}
+
 function StatusPill({ status }) {
   const safeStatus = statusPalette[status] ? status : "desconhecido";
   const palette = statusPalette[safeStatus];
@@ -182,6 +198,7 @@ export default function App() {
   const [apiBaseUrl, setApiBaseUrl] = useState(DEFAULT_API_URL);
   const [numberToCheck, setNumberToCheck] = useState("");
   const [result, setResult] = useState(null);
+  const [selectedSuspicion, setSelectedSuspicion] = useState(null);
   const [history, setHistory] = useState([]);
   const [safeNumbers, setSafeNumbers] = useState([]);
   const [safeQuery, setSafeQuery] = useState("");
@@ -361,6 +378,23 @@ export default function App() {
     }
   }
 
+  function handleOpenSuspectDetails(verification) {
+    setSelectedSuspicion(verification);
+    setActiveTab("suspect");
+  }
+
+  function handleOpenSecurityTips() {
+    setActiveTab("security");
+  }
+
+  function handleBackToVerify() {
+    setActiveTab("verify");
+  }
+
+  function handleBackToSuspect() {
+    setActiveTab("suspect");
+  }
+
   function renderVerify() {
     const palette = statusPalette[result?.status || "desconhecido"];
 
@@ -390,6 +424,15 @@ export default function App() {
               <StatusPill status={result.status} />
             </View>
             <Text style={[styles.resultMessage, { color: palette.text }]}>{result.mensagem}</Text>
+            {isSuspiciousStatus(result.status) ? (
+              <PrimaryButton
+                onPress={() => handleOpenSuspectDetails(result)}
+                variant="danger"
+                style={styles.resultAction}
+              >
+                Saiba mais...
+              </PrimaryButton>
+            ) : null}
           </View>
         ) : null}
 
@@ -412,6 +455,153 @@ export default function App() {
         ) : (
           <EmptyState title="Sem consultas" message="As verificações desta sessão aparecerão aqui." />
         )}
+      </>
+    );
+  }
+
+  function renderSuspectDetails() {
+    const verification = selectedSuspicion || (isSuspiciousStatus(result?.status) ? result : null);
+
+    if (!verification) {
+      return (
+        <View style={styles.panel}>
+          <Text style={styles.panelTitle}>Alerta indisponivel</Text>
+          <Text style={styles.emptyMessage}>Faca uma consulta suspeita para acessar esta tela.</Text>
+          <PrimaryButton onPress={handleBackToVerify} style={styles.fullButton}>
+            Voltar para consulta
+          </PrimaryButton>
+        </View>
+      );
+    }
+
+    const palette = statusPalette[verification.status] || statusPalette.suspeito;
+    const riskAlertLabel = getRiskAlertLabel(verification.status);
+    const riskClassificationLabel = getRiskClassificationLabel(verification.status);
+
+    return (
+      <>
+        <View style={[styles.suspectHero, { backgroundColor: palette.background, borderColor: palette.border }]}>
+          <View style={styles.suspectHeaderRow}>
+            <Text style={[styles.suspectEyebrow, { color: palette.text }]}>
+              POSSIVEL TENTATIVA DE {riskAlertLabel} IDENTIFICADA
+            </Text>
+            <StatusPill status={verification.status} />
+          </View>
+
+          <Text style={[styles.suspectTitle, { color: palette.text }]}>{getRiskTitle(verification.status)}</Text>
+          <Text style={styles.suspectLead}>
+            O numero {verification.numero} foi classificado como {riskClassificationLabel}. Nao informe senha, token,
+            codigo SMS ou dados bancarios por telefone.
+          </Text>
+
+          {verification.mensagem ? (
+            <View style={styles.suspectSummary}>
+              <Text style={styles.suspectSummaryLabel}>Resultado da consulta</Text>
+              <Text style={styles.suspectSummaryText}>{verification.mensagem}</Text>
+            </View>
+          ) : null}
+        </View>
+
+        <View style={styles.warningBox}>
+          <Text style={styles.warningTitle}>Alerta de seguranca</Text>
+          <Text style={styles.warningText}>
+            O Bradesco nunca solicita senha, token, codigo SMS ou transferencias PIX por telefone.
+          </Text>
+        </View>
+
+        <View style={styles.riskGrid}>
+          <View style={styles.riskMiniCard}>
+            <Text style={styles.riskMiniKicker}>SMS</Text>
+            <Text style={styles.riskMiniText}>Mensagem falsa</Text>
+          </View>
+          <View style={styles.riskMiniCard}>
+            <Text style={styles.riskMiniKicker}>TEL</Text>
+            <Text style={styles.riskMiniText}>Ligacao falsa</Text>
+          </View>
+          <View style={styles.riskMiniCard}>
+            <Text style={styles.riskMiniKicker}>DADOS</Text>
+            <Text style={styles.riskMiniText}>Roubo de dados</Text>
+          </View>
+        </View>
+
+        <View style={styles.formActions}>
+          <PrimaryButton onPress={handleOpenSecurityTips} style={styles.formButton}>
+            Ver dicas
+          </PrimaryButton>
+          <PrimaryButton onPress={handleBackToVerify} variant="secondary" style={styles.formButton}>
+            Voltar
+          </PrimaryButton>
+        </View>
+      </>
+    );
+  }
+
+  function renderSecurityTips() {
+    const verification = selectedSuspicion || result;
+
+    return (
+      <>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Como se proteger</Text>
+          <Pressable accessibilityRole="button" onPress={handleBackToSuspect} style={styles.inlineButton}>
+            <Text style={styles.inlineButtonText}>Voltar</Text>
+          </Pressable>
+        </View>
+
+        <View style={styles.warningBox}>
+          <Text style={styles.warningTitle}>Regra principal</Text>
+          <Text style={styles.warningText}>
+            Nunca passe senhas, tokens, codigos SMS, dados do cartao ou autorizacoes PIX durante uma ligacao.
+          </Text>
+          {verification?.numero ? <Text style={styles.warningMeta}>Numero consultado: {verification.numero}</Text> : null}
+        </View>
+
+        <View style={styles.tipCard}>
+          <Text style={styles.tipCode}>SMS</Text>
+          <View style={styles.tipContent}>
+            <Text style={styles.tipTitle}>Mensagens falsas</Text>
+            <Text style={styles.tipText}>
+              Golpistas enviam SMS, WhatsApp ou e-mails fingindo ser o banco. Evite links recebidos por mensagem.
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.tipCard}>
+          <Text style={styles.tipCode}>TEL</Text>
+          <View style={styles.tipContent}>
+            <Text style={styles.tipTitle}>Ligacoes fraudulentas</Text>
+            <Text style={styles.tipText}>
+              Criminosos se passam por funcionarios para induzir a entrega de dados pessoais e bancarios.
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.tipCard}>
+          <Text style={styles.tipCode}>CARD</Text>
+          <View style={styles.tipContent}>
+            <Text style={styles.tipTitle}>Proteja seus dados</Text>
+            <Text style={styles.tipText}>
+              Desconfie de urgencia, bloqueio de conta, pedido de instalacao de app ou transferencia imediata.
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.fakeMessage}>
+          <View style={styles.fakeMessageHeader}>
+            <Text style={styles.fakeMessageHeaderText}>Exemplo de mensagem suspeita</Text>
+          </View>
+          <View style={styles.fakeMessageBubble}>
+            <Text style={styles.fakeMessageText}>
+              Ola cliente Bradesco, identificamos uma movimentacao suspeita em sua conta. Clique no link para
+              evitar o bloqueio.
+            </Text>
+          </View>
+          <Text style={styles.fakeMessageAlert}>Esta mensagem apresenta caracteristicas tipicas de golpe.</Text>
+        </View>
+
+        <PrimaryButton onPress={handleBackToVerify} style={styles.fullButton}>
+          Voltar para consulta
+        </PrimaryButton>
       </>
     );
   }
@@ -526,6 +716,14 @@ export default function App() {
   }
 
   function renderContent() {
+    if (activeTab === "suspect") {
+      return renderSuspectDetails();
+    }
+
+    if (activeTab === "security") {
+      return renderSecurityTips();
+    }
+
     if (activeTab === "safe") {
       return renderSafeNumbers();
     }
@@ -554,7 +752,9 @@ export default function App() {
 
           <View style={styles.tabs}>
             {tabs.map((tab) => {
-              const active = activeTab === tab.id;
+              const active =
+                activeTab === tab.id ||
+                ((activeTab === "suspect" || activeTab === "security") && tab.id === "verify");
 
               return (
                 <Pressable
@@ -811,6 +1011,106 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     fontWeight: "700",
   },
+  resultAction: {
+    alignSelf: "flex-start",
+    minWidth: 132,
+  },
+  suspectHero: {
+    gap: 14,
+    padding: 16,
+    borderWidth: 1,
+    borderRadius: 8,
+  },
+  suspectHeaderRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  suspectEyebrow: {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: "900",
+  },
+  suspectTitle: {
+    fontSize: 30,
+    lineHeight: 36,
+    fontWeight: "900",
+  },
+  suspectLead: {
+    color: colors.ink,
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: "700",
+  },
+  suspectSummary: {
+    gap: 6,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(23, 32, 38, 0.12)",
+  },
+  suspectSummaryLabel: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: "900",
+  },
+  suspectSummaryText: {
+    color: colors.ink,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: "700",
+  },
+  warningBox: {
+    gap: 8,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: "#f4a7b0",
+    borderRadius: 8,
+    backgroundColor: colors.dangerSoft,
+  },
+  warningTitle: {
+    color: colors.brand,
+    fontSize: 16,
+    fontWeight: "900",
+  },
+  warningText: {
+    color: colors.ink,
+    fontSize: 14,
+    lineHeight: 21,
+    fontWeight: "700",
+  },
+  warningMeta: {
+    color: colors.brand,
+    fontSize: 13,
+    fontWeight: "900",
+  },
+  riskGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+  },
+  riskMiniCard: {
+    flexGrow: 1,
+    flexBasis: 145,
+    gap: 5,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 8,
+    backgroundColor: colors.surface,
+  },
+  riskMiniKicker: {
+    color: colors.brand,
+    fontSize: 12,
+    fontWeight: "900",
+  },
+  riskMiniText: {
+    color: colors.ink,
+    fontSize: 14,
+    fontWeight: "800",
+  },
   statusPill: {
     minHeight: 32,
     justifyContent: "center",
@@ -952,6 +1252,80 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
     fontWeight: "700",
+  },
+  tipCard: {
+    minHeight: 106,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 8,
+    backgroundColor: colors.surface,
+  },
+  tipCode: {
+    width: 48,
+    minHeight: 34,
+    textAlign: "center",
+    textAlignVertical: "center",
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: colors.dangerSoft,
+    color: colors.brand,
+    fontSize: 11,
+    fontWeight: "900",
+  },
+  tipContent: {
+    flex: 1,
+    minWidth: 0,
+    gap: 5,
+  },
+  tipTitle: {
+    color: colors.brand,
+    fontSize: 17,
+    fontWeight: "900",
+  },
+  tipText: {
+    color: colors.muted,
+    fontSize: 14,
+    lineHeight: 21,
+    fontWeight: "700",
+  },
+  fakeMessage: {
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: 8,
+    backgroundColor: "#ece5dd",
+  },
+  fakeMessageHeader: {
+    padding: 13,
+    backgroundColor: "#075e54",
+  },
+  fakeMessageHeaderText: {
+    color: colors.surface,
+    fontSize: 14,
+    fontWeight: "900",
+  },
+  fakeMessageBubble: {
+    margin: 14,
+    padding: 13,
+    borderRadius: 8,
+    backgroundColor: colors.surface,
+  },
+  fakeMessageText: {
+    color: colors.ink,
+    fontSize: 14,
+    lineHeight: 21,
+    fontWeight: "700",
+  },
+  fakeMessageAlert: {
+    paddingHorizontal: 14,
+    paddingBottom: 14,
+    color: colors.brand,
+    fontSize: 13,
+    fontWeight: "900",
   },
   connectionCard: {
     flexDirection: "row",
